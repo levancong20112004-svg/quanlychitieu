@@ -1,0 +1,356 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인 지출 관리 프로그램</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 15px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 5px 20px #0002;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2563eb;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+        }
+
+        .summary {
+            background: #2563eb;
+            color: white;
+            padding: 22px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 25px 0;
+        }
+
+            .summary h2 {
+                font-size: 28px;
+            }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin: 7px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .add-btn {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            margin-top: 8px;
+        }
+
+            .add-btn:hover {
+                background: #1d4ed8;
+            }
+
+        .section {
+            margin-top: 25px;
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 10px;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .info {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .message {
+            color: #dc2626;
+        }
+
+        .reset-btn {
+            background: #64748b;
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>💰 지출 관리 프로그램</h1>
+        <p class="subtitle">나의 하루 지출을 관리해 보세요!</p>
+
+        <div class="summary">
+            <p>총 지출 금액</p>
+            <h2 id="total">0원</h2>
+            <p id="count">0개 항목</p>
+        </div>
+
+        <div class="section">
+            <h3>➕ 지출 추가</h3>
+
+            <input type="text" id="expenseName"
+                   placeholder="지출 항목을 입력하세요">
+
+            <input type="number" id="expensePrice"
+                   placeholder="금액을 입력하세요 (원)"
+                   min="1" step="1">
+
+            <button class="add-btn" onclick="addExpense()">
+                지출 추가하기
+            </button>
+
+            <p class="message" id="message"></p>
+        </div>
+
+        <div class="section">
+            <h3>📋 지출 목록</h3>
+            <div id="expenseList">
+                아직 지출 내역이 없습니다.
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>📊 지출 통계</h3>
+
+            <div class="info">
+                <p id="totalInfo">총 지출: 0원</p>
+                <p id="largestInfo">
+                    가장 큰 지출: 없음
+                </p>
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="resetExpenses()">
+            전체 삭제
+        </button>
+
+    </div>
+
+    <script>
+
+        // 지출 데이터 저장
+        let expenses = [];
+
+        // 기능 1: 지출 추가
+        function addExpense() {
+
+        const name = document.getElementById(
+        "expenseName"
+        ).value.trim();
+
+        const priceInput = document.getElementById(
+        "expensePrice"
+        ).value;
+
+        const price = Number(priceInput);
+
+        const message = document.getElementById("message");
+
+        if (name === "" || priceInput === "") {
+        message.style.color = "red";
+        message.textContent =
+        "지출 항목과 금액을 입력해 주세요!";
+        return;
+        }
+
+        if (!Number.isSafeInteger(price) || price <= 0) {
+        message.style.color = "red";
+        message.textContent =
+        "올바른 금액을 입력해 주세요!";
+        return;
+        }
+
+        if (expenses.length >= 100) {
+        message.style.color = "red";
+        message.textContent =
+        "지출 목록이 가득 찼습니다!";
+        return;
+        }
+
+        expenses.push({
+        name: name,
+        price: price
+        });
+
+        message.style.color = "green";
+        message.textContent =
+        "지출이 성공적으로 추가되었습니다!";
+
+        document.getElementById("expenseName").value = "";
+        document.getElementById("expensePrice").value = "";
+
+        updateDisplay();
+        }
+
+        // 기능 2: 지출 목록 표시
+        function showExpenses() {
+
+        const list = document.getElementById("expenseList");
+
+        list.innerHTML = "";
+
+        if (expenses.length === 0) {
+        list.textContent =
+        "아직 지출 내역이 없습니다!";
+        return;
+        }
+
+        expenses.forEach((expense, index) => {
+
+        const item = document.createElement("div");
+        item.className = "expense-item";
+
+        const detail = document.createElement("span");
+
+        detail.textContent =
+        (index + 1) + ". " +
+        expense.name + " - " +
+        expense.price.toLocaleString("ko-KR") +
+        "원";
+
+        const deleteButton = document.createElement("button");
+
+        deleteButton.className = "delete-btn";
+        deleteButton.textContent = "삭제";
+
+        deleteButton.onclick = function() {
+        expenses.splice(index, 1);
+        updateDisplay();
+        };
+
+        item.appendChild(detail);
+        item.appendChild(deleteButton);
+
+        list.appendChild(item);
+        });
+        }
+
+        // 기능 3: 총 지출 금액 계산
+        function calculateTotal() {
+
+        let total = 0;
+
+        for (let i = 0; i < expenses.length; i++) {
+        total += expenses[i].price;
+        }
+
+        document.getElementById("total").textContent =
+        total.toLocaleString("ko-KR") + "원";
+
+        document.getElementById("totalInfo").textContent =
+        "총 지출: " +
+        total.toLocaleString("ko-KR") + "원";
+        }
+
+        // 기능 4: 가장 큰 지출 찾기
+        function findLargest() {
+
+        const result = document.getElementById("largestInfo");
+
+        if (expenses.length === 0) {
+        result.textContent =
+        "가장 큰 지출: 없음";
+        return;
+        }
+
+        let maxIndex = 0;
+
+        for (let i = 1; i < expenses.length; i++) {
+
+        if (expenses[i].price >
+        expenses[maxIndex].price) {
+
+        maxIndex = i;
+        }
+        }
+
+        result.textContent =
+        "가장 큰 지출: " +
+        expenses[maxIndex].name + " - " +
+        expenses[maxIndex].price.toLocaleString("ko-KR") +
+        "원";
+        }
+
+        // 전체 화면 업데이트
+        function updateDisplay() {
+
+        showExpenses();
+        calculateTotal();
+        findLargest();
+
+        document.getElementById("count").textContent =
+        expenses.length + "개 항목";
+        }
+
+        // 전체 지출 삭제
+        function resetExpenses() {
+
+        if (!confirm("모든 지출 내역을 삭제하시겠습니까?")) {
+        return;
+        }
+
+        expenses = [];
+
+        document.getElementById("message").textContent = "";
+
+        updateDisplay();
+        }
+
+        // 프로그램 시작
+        updateDisplay();
+
+    </script>
+
+</body>
+</html>
